@@ -448,7 +448,7 @@
                     <h2 class="text-4xl font-bold text-gray-900 mb-8">Menú Infantil ✨</h2>
                     <div class="flex flex-col md:flex-row justify-center items-center gap-8">
                         <div class="bg-white rounded-lg shadow-lg p-6 w-full md:w-1/3 text-center transition duration-300 transform hover:scale-105">
-                            <img src=https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSt8Ei2Dvqe4TAkwH059-YGNhXRiaBWHxc4_A&s?text=Nuggets" alt="Nuggets de pollo" class="rounded-lg mb-4 w-full h-auto object-cover">
+                            <img src=https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSt8Ei2Dvqe4TAkwH059-YGNhXRiaBWHxc4?text=Nuggets" alt="Nuggets de pollo" class="rounded-lg mb-4 w-full h-auto object-cover">
                             <h3 class="text-2xl font-bold text-gray-900 mb-2">Nuggets de pollo</h3>
                             <span class="text-xl font-bold text-blue-600">16.000 pesos</span>
                         </div>
