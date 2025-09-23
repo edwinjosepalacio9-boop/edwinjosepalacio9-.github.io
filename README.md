@@ -625,4 +625,100 @@
         });
     </script>
 </body>
-</html>
+</html> 
+<!-- Calificación con estrellas y texto -->
+<style>
+.rating-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 20px 0;
+}
+.stars {
+  display: flex;
+  flex-direction: row;
+}
+.star {
+  font-size: 2rem;
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.star.selected,
+.star:hover,
+.star:hover ~ .star {
+  color: gold;
+}
+.rating-text {
+  margin-top: 10px;
+  width: 300px;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+.rating-result {
+  margin-top: 10px;
+  font-style: italic;
+  color: #333;
+}
+</style>
+
+<div class="rating-container">
+  <label>Califica este sitio:</label>
+  <div class="stars" id="stars">
+    <span class="star" data-value="1">&#9733;</span>
+    <span class="star" data-value="2">&#9733;</span>
+    <span class="star" data-value="3">&#9733;</span>
+    <span class="star" data-value="4">&#9733;</span>
+    <span class="star" data-value="5">&#9733;</span>
+  </div>
+  <input type="text" id="ratingText" class="rating-text" placeholder="Escribe tu opinión aquí..." />
+  <button onclick="submitRating()">Enviar calificación</button>
+  <div id="ratingResult" class="rating-result"></div>
+</div>
+
+<script>
+const stars = document.querySelectorAll('.star');
+let selectedRating = 0;
+
+stars.forEach(star => {
+  star.addEventListener('mouseover', function() {
+    const val = parseInt(this.getAttribute('data-value'));
+    highlightStars(val);
+  });
+  star.addEventListener('mouseout', function() {
+    highlightStars(selectedRating);
+  });
+  star.addEventListener('click', function() {
+    selectedRating = parseInt(this.getAttribute('data-value'));
+    highlightStars(selectedRating);
+  });
+});
+
+function highlightStars(rating) {
+  stars.forEach(star => {
+    if (parseInt(star.getAttribute('data-value')) <= rating) {
+      star.classList.add('selected');
+    } else {
+      star.classList.remove('selected');
+    }
+  });
+}
+
+function submitRating() {
+  const text = document.getElementById('ratingText').value;
+  if (selectedRating === 0) {
+    alert('Por favor selecciona una calificación de estrellas.');
+    return;
+  }
+  if (text.trim() === '') {
+    alert('Por favor escribe tu opinión.');
+    return;
+  }
+  document.getElementById('ratingResult').innerText =
+    `¡Gracias por tu calificación de ${selectedRating} estrella${selectedRating > 1 ? 's' : ''}!\nTu opinión: ${text}`;
+  // Si quieres guardar en localStorage:
+  // localStorage.setItem('siteRating', JSON.stringify({stars: selectedRating, text}));
+}
+</script>
