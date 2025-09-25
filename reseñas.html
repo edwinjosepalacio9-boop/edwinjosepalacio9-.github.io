@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reseñas de Usuarios</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 2em; }
+    .review { background: #fff; padding: 1em; margin-bottom: 1em; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.06);}
+    .review strong { color: #222; }
+    .review em { color: #555; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h2>Reseñas de Usuarios</h2>
+  <div id="reviews"></div>
+  <p>¿Quieres dejar tu reseña? <a href="https://github.com/edwinjosepalacio9-boop/edwinjosepalacio9-.github.io/issues/new" target="_blank">Haz clic aquí</a></p>
+
+  <script>
+    // Reemplaza con tu usuario/repositorio
+    const repo = 'edwinjosepalacio9-boop/edwinjosepalacio9-.github.io';
+
+    fetch(`https://api.github.com/repos/${repo}/issues`)
+      .then(response => response.json())
+      .then(issues => {
+        const container = document.getElementById('reviews');
+        if (!Array.isArray(issues) || issues.length === 0) {
+          container.innerHTML = "<p>No hay reseñas aún.</p>";
+        } else {
+          issues.forEach(issue => {
+            const div = document.createElement('div');
+            div.className = "review";
+            div.innerHTML = `
+              <strong>${issue.title}</strong><br>
+              <em>por ${issue.user.login}</em><br>
+              <p>${issue.body ? issue.body.replace(/\n/g, '<br>') : ''}</p>
+              <a href="${issue.html_url}" target="_blank">Ver en GitHub</a>
+            `;
+            container.appendChild(div);
+          });
+        }
+      })
+      .catch(err => {
+        document.getElementById('reviews').innerHTML = "Error al cargar reseñas.";
+      });
+  </script>
+</body>
+</html>
