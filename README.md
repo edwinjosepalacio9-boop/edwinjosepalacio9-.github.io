@@ -624,99 +624,50 @@
             }
         });
     </script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reseñas de Usuarios</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 2em; }
+    .review { background: #fff; padding: 1em; margin-bottom: 1em; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.06);}
+    .review strong { color: #222; }
+    .review em { color: #555; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h2>Reseñas de Usuarios</h2>
+  <div id="reviews"></div>
+  <p>¿Quieres dejar tu reseña? <a href="https://github.com/edwinjosepalacio9-boop/edwinjosepalacio9-.github.io/issues/new" target="_blank">Haz clic aquí</a></p>
+
+  <script>
+    // edwinjosepalacio9-boop/edwinjosepalacio9
+    const repo = 'edwinjosepalacio9-boop/edwinjosepalacio9-.github.io';
+
+    fetch(`https://api.github.com/repos/${repo}/issues`)
+      .then(response => response.json())
+      .then(issues => {
+        const container = document.getElementById('reviews');
+        if (!Array.isArray(issues) || issues.length === 0) {
+          container.innerHTML = "<p>No hay reseñas aún.</p>";
+        } else {
+          issues.forEach(issue => {
+            const div = document.createElement('div');
+            div.className = "review";
+            div.innerHTML = `
+              <strong>${issue.title}</strong><br>
+              <em>por ${issue.user.login}</em><br>
+              <p>${issue.body ? issue.body.replace(/\n/g, '<br>') : ''}</p>
+              <a href="${issue.html_url}" target="_blank">Ver en GitHub</a>
+            `;
+            container.appendChild(div);
+          });
+        }
+      })
+      .catch(err => {
+        document.getElementById('reviews').innerHTML = "Error al cargar reseñas.";
+      });
+  </script>
 </body>
-</html> 
-<!-- Calificación con estrellas y texto -->
-<style>
-.rating-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin: 20px 0;
-}
-.stars {
-  display: flex;
-  flex-direction: row;
-}
-.star {
-  font-size: 2rem;
-  color: #ccc;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-.star.selected,
-.star:hover,
-.star:hover ~ .star {
-  color: gold;
-}
-.rating-text {
-  margin-top: 10px;
-  width: 300px;
-  padding: 6px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-}
-.rating-result {
-  margin-top: 10px;
-  font-style: italic;
-  color: #333;
-}
-</style>
-
-<div class="rating-container">
-  <label>Califica este sitio:</label>
-  <div class="stars" id="stars">
-    <span class="star" data-value="1">&#9733;</span>
-    <span class="star" data-value="2">&#9733;</span>
-    <span class="star" data-value="3">&#9733;</span>
-    <span class="star" data-value="4">&#9733;</span>
-    <span class="star" data-value="5">&#9733;</span>
-  </div>
-  <input type="text" id="ratingText" class="rating-text" placeholder="Escribe tu opinión aquí..." />
-  <button onclick="submitRating()">Enviar calificación</button>
-  <div id="ratingResult" class="rating-result"></div>
-</div>
-
-<script>
-const stars = document.querySelectorAll('.star');
-let selectedRating = 0;
-
-stars.forEach(star => {
-  star.addEventListener('mouseover', function() {
-    const val = parseInt(this.getAttribute('data-value'));
-    highlightStars(val);
-  });
-  star.addEventListener('mouseout', function() {
-    highlightStars(selectedRating);
-  });
-  star.addEventListener('click', function() {
-    selectedRating = parseInt(this.getAttribute('data-value'));
-    highlightStars(selectedRating);
-  });
-});
-
-function highlightStars(rating) {
-  stars.forEach(star => {
-    if (parseInt(star.getAttribute('data-value')) <= rating) {
-      star.classList.add('selected');
-    } else {
-      star.classList.remove('selected');
-    }
-  });
-}
-
-function submitRating() {
-  const text = document.getElementById('ratingText').value;
-  if (selectedRating === 0) {
-    alert('Por favor selecciona una calificación de estrellas.');
-    return;
-  }
-  if (text.trim() === '') {
-    alert('Por favor escribe tu opinión.');
-    return;
-  }
-  document.getElementById('ratingResult').innerText =
-    `¡Gracias por tu calificación de ${selectedRating} estrella${selectedRating > 1 ? 's' : ''}!\nTu opinión: ${text}`;
-  // localStorage.setItem('siteRating', JSON.stringify({stars: selectedRating, text}));}
-</script>
+</html>
