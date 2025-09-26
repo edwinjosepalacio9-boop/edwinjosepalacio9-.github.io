@@ -627,47 +627,905 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Reseñas de Usuarios</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 2em; }
-    .review { background: #fff; padding: 1em; margin-bottom: 1em; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.06);}
-    .review strong { color: #222; }
-    .review em { color: #555; font-size: 0.9em; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reseñas Anónimas</title>
+    <style>
+        /* Pega el código CSS aquí */
+        .contenedor-reseñas {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .contenedor-estrellas {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .estrellas {
+            direction: rtl;
+            display: flex;
+        }
+
+        .estrellas input {
+            display: none;
+        }
+
+        .estrellas label {
+            font-size: 3rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .estrellas input:checked ~ label,
+        .estrellas label:hover,
+        .estrellas label:hover ~ label {
+            color: #ffcc00;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #btn-enviar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #btn-enviar:hover {
+            background-color: #0056b3;
+        }
+
+        #reseñas-mostradas {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .reseña {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .reseña .estrellas-mostrar {
+            color: #ffcc00;
+        }
+    </style>
 </head>
 <body>
-  <h2>Reseñas de Usuarios</h2>
-  <div id="reviews"></div>
-  <p>¿Quieres dejar tu reseña? <a href="https://github.com/edwinjosepalacio9-boop/edwinjosepalacio9-.github.io/issues/new" target="_blank">Haz clic aquí</a></p>
+    <div class="contenedor-reseñas">
+        <h2>Deja tu reseña</h2>
+        <div class="contenedor-estrellas">
+            <span class="etiqueta-estrellas">Calificación:</span>
+            <form id="formulario-reseña" class="estrellas">
+                <input type="radio" id="estrella5" name="calificacion" value="5" />
+                <label for="estrella5" title="5 estrellas">&#9733;</label>
+                <input type="radio" id="estrella4" name="calificacion" value="4" />
+                <label for="estrella4" title="4 estrellas">&#9733;</label>
+                <input type="radio" id="estrella3" name="calificacion" value="3" />
+                <label for="estrella3" title="3 estrellas">&#9733;</label>
+                <input type="radio" id="estrella2" name="calificacion" value="2" />
+                <label for="estrella2" title="2 estrellas">&#9733;</label>
+                <input type="radio" id="estrella1" name="calificacion" value="1" />
+                <label for="estrella1" title="1 estrella">&#9733;</label>
+            </form>
+        </div>
+        <textarea id="comentario" placeholder="Escribe tu comentario anónimo..." required></textarea>
+        <button type="submit" id="btn-enviar">Enviar reseña</button>
+        <div id="reseñas-mostradas">
+            </div>
+    </div>
+    <script>
+        /* Pega el código JavaScript aquí */
+        document.addEventListener('DOMContentLoaded', () => {
+            const formulario = document.getElementById('formulario-reseña');
+            const btnEnviar = document.getElementById('btn-enviar');
+            const comentarioInput = document.getElementById('comentario');
+            const reseñasMostradas = document.getElementById('reseñas-mostradas');
 
-  <script>
-    // edwinjosepalacio9-boop/edwinjosepalacio9
-    const repo = 'edwinjosepalacio9-boop/edwinjosepalacio9-.github.io';
+            let reseñas = JSON.parse(localStorage.getItem('reseñas')) || [];
 
-    fetch(`https://api.github.com/repos/${repo}/issues`)
-      .then(response => response.json())
-      .then(issues => {
-        const container = document.getElementById('reviews');
-        if (!Array.isArray(issues) || issues.length === 0) {
-          container.innerHTML = "<p>No hay reseñas aún.</p>";
-        } else {
-          issues.forEach(issue => {
-            const div = document.createElement('div');
-            div.className = "review";
-            div.innerHTML = `
-              <strong>${issue.title}</strong><br>
-              <em>por ${issue.user.login}</em><br>
-              <p>${issue.body ? issue.body.replace(/\n/g, '<br>') : ''}</p>
-              <a href="${issue.html_url}" target="_blank">Ver en GitHub</a>
-            `;
-            container.appendChild(div);
-          });
+            const generarNombreAnonimo = () => {
+                const adjetivos = ['Anónimo', 'Secreto', 'Misterioso', 'Oculto'];
+                const sustantivos = ['Usuario', 'Visitante', 'Cliente', 'Revisor'];
+                const adjetivoAleatorio = adjetivos[Math.floor(Math.random() * adjetivos.length)];
+                const sustantivoAleatorio = sustantivos[Math.floor(Math.random() * sustantivos.length)];
+                return `${adjetivoAleatorio} ${sustantivoAleatorio}`;
+            };
+
+            const mostrarReseñas = () => {
+                reseñasMostradas.innerHTML = '';
+                reseñas.forEach(reseña => {
+                    const divReseña = document.createElement('div');
+                    divReseña.classList.add('reseña');
+
+                    let estrellasHTML = '';
+                    for (let i = 0; i < 5; i++) {
+                        if (i < reseña.calificacion) {
+                            estrellasHTML += `<span class="estrellas-mostrar">&#9733;</span>`;
+                        } else {
+                            estrellasHTML += `<span>&#9733;</span>`;
+                        }
+                    }
+                    
+                    divReseña.innerHTML = `
+                        <p><strong>De:</strong> ${reseña.nombre}</p>
+                        <div class="calificacion-mostrar">${estrellasHTML}</div>
+                        <p><strong>Comentario:</strong> ${reseña.comentario}</p>
+                    `;
+                    reseñasMostradas.appendChild(divReseña);
+                });
+            };
+
+            btnEnviar.addEventListener('click', (e) => {
+                e.preventDefault();
+                const calificacionInput = document.querySelector('input[name="calificacion"]:checked');
+
+                if (!calificacionInput) {
+                    alert('Por favor, selecciona una calificación con estrellas.');
+                    return;
+                }
+
+                const nuevaReseña = {
+                    nombre: generarNombreAnonimo(),
+                    calificacion: parseInt(calificacionInput.value),
+                    comentario: comentarioInput.value
+                };
+
+                reseñas.unshift(nuevaReseña);
+                localStorage.setItem('reseñas', JSON.stringify(reseñas));
+                comentarioInput.value = '';
+                calificacionInput.checked = false;
+                mostrarReseñas();
+            });
+
+            mostrarReseñas();
+        });
+    </script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reseñas Anónimas</title>
+    <style>
+        /* Pega el código CSS aquí */
+        .contenedor-reseñas {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-      })
-      .catch(err => {
-        document.getElementById('reviews').innerHTML = "Error al cargar reseñas.";
-      });
-  </script>
-</body>
-</html>
+
+        .contenedor-estrellas {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .estrellas {
+            direction: rtl;
+            display: flex;
+        }
+
+        .estrellas input {
+            display: none;
+        }
+
+        .estrellas label {
+            font-size: 3rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .estrellas input:checked ~ label,
+        .estrellas label:hover,
+        .estrellas label:hover ~ label {
+            color: #ffcc00;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #btn-enviar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #btn-enviar:hover {
+            background-color: #0056b3;
+        }
+
+        #reseñas-mostradas {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .reseña {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .reseña .estrellas-mostrar {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor-reseñas">
+        <h2>Deja tu reseña</h2>
+        <div class="contenedor-estrellas">
+            <span class="etiqueta-estrellas">Calificación:</span>
+            <form id="formulario-reseña" class="estrellas">
+                <input type="radio" id="estrella5" name="calificacion" value="5" />
+                <label for="estrella5" title="5 estrellas">&#9733;</label>
+                <input type="radio" id="estrella4" name="calificacion" value="4" />
+                <label for="estrella4" title="4 estrellas">&#9733;</label>
+                <input type="radio" id="estrella3" name="calificacion" value="3" />
+                <label for="estrella3" title="3 estrellas">&#9733;</label>
+                <input type="radio" id="estrella2" name="calificacion" value="2" />
+                <label for="estrella2" title="2 estrellas">&#9733;</label>
+                <input type="radio" id="estrella1" name="calificacion" value="1" />
+                <label for="estrella1" title="1 estrella">&#9733;</label>
+            </form>
+        </div>
+        <textarea id="comentario" placeholder="Escribe tu comentario anónimo..." required></textarea>
+        <button type="submit" id="btn-enviar">Enviar reseña</button>
+        <div id="reseñas-mostradas">
+            </div>
+    </div>
+    <script>
+        /* Pega el código JavaScript aquí */
+        document.addEventListener('DOMContentLoaded', () => {
+            const formulario = document.getElementById('formulario-reseña');
+            const btnEnviar = document.getElementById('btn-enviar');
+            const comentarioInput = document.getElementById('comentario');
+            const reseñasMostradas = document.getElementById('reseñas-mostradas');
+
+            let reseñas = JSON.parse(localStorage.getItem('reseñas')) || [];
+
+            const generarNombreAnonimo = () => {
+                const adjetivos = ['Anónimo', 'Secreto', 'Misterioso', 'Oculto'];
+                const sustantivos = ['Usuario', 'Visitante', 'Cliente', 'Revisor'];
+                const adjetivoAleatorio = adjetivos[Math.floor(Math.random() * adjetivos.length)];
+                const sustantivoAleatorio = sustantivos[Math.floor(Math.random() * sustantivos.length)];
+                return `${adjetivoAleatorio} ${sustantivoAleatorio}`;
+            };
+
+            const mostrarReseñas = () => {
+                reseñasMostradas.innerHTML = '';
+                reseñas.forEach(reseña => {
+                    const divReseña = document.createElement('div');
+                    divReseña.classList.add('reseña');
+
+                    let estrellasHTML = '';
+                    for (let i = 0; i < 5; i++) {
+                        if (i < reseña.calificacion) {
+                            estrellasHTML += `<span class="estrellas-mostrar">&#9733;</span>`;
+                        } else {
+                            estrellasHTML += `<span>&#9733;</span>`;
+                        }
+                    }
+                    
+                    divReseña.innerHTML = `
+                        <p><strong>De:</strong> ${reseña.nombre}</p>
+                        <div class="calificacion-mostrar">${estrellasHTML}</div>
+                        <p><strong>Comentario:</strong> ${reseña.comentario}</p>
+                    `;
+                    reseñasMostradas.appendChild(divReseña);
+                });
+            };
+
+            btnEnviar.addEventListener('click', (e) => {
+                e.preventDefault();
+                const calificacionInput = document.querySelector('input[name="calificacion"]:checked');
+
+                if (!calificacionInput) {
+                    alert('Por favor, selecciona una calificación con estrellas.');
+                    return;
+                }
+
+                const nuevaReseña = {
+                    nombre: generarNombreAnonimo(),
+                    calificacion: parseInt(calificacionInput.value),
+                    comentario: comentarioInput.value
+                };
+
+                reseñas.unshift(nuevaReseña);
+                localStorage.setItem('reseñas', JSON.stringify(reseñas));
+                comentarioInput.value = '';
+                calificacionInput.checked = false;
+                mostrarReseñas();
+            });
+
+            mostrarReseñas();
+        });
+    </script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reseñas Anónimas</title>
+    <style>
+        /* Pega el código CSS aquí */
+        .contenedor-reseñas {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .contenedor-estrellas {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .estrellas {
+            direction: rtl;
+            display: flex;
+        }
+
+        .estrellas input {
+            display: none;
+        }
+
+        .estrellas label {
+            font-size: 3rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .estrellas input:checked ~ label,
+        .estrellas label:hover,
+        .estrellas label:hover ~ label {
+            color: #ffcc00;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #btn-enviar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #btn-enviar:hover {
+            background-color: #0056b3;
+        }
+
+        #reseñas-mostradas {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .reseña {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .reseña .estrellas-mostrar {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor-reseñas">
+        <h2>Deja tu reseña</h2>
+        <div class="contenedor-estrellas">
+            <span class="etiqueta-estrellas">Calificación:</span>
+            <form id="formulario-reseña" class="estrellas">
+                <input type="radio" id="estrella5" name="calificacion" value="5" />
+                <label for="estrella5" title="5 estrellas">&#9733;</label>
+                <input type="radio" id="estrella4" name="calificacion" value="4" />
+                <label for="estrella4" title="4 estrellas">&#9733;</label>
+                <input type="radio" id="estrella3" name="calificacion" value="3" />
+                <label for="estrella3" title="3 estrellas">&#9733;</label>
+                <input type="radio" id="estrella2" name="calificacion" value="2" />
+                <label for="estrella2" title="2 estrellas">&#9733;</label>
+                <input type="radio" id="estrella1" name="calificacion" value="1" />
+                <label for="estrella1" title="1 estrella">&#9733;</label>
+            </form>
+        </div>
+        <textarea id="comentario" placeholder="Escribe tu comentario anónimo..." required></textarea>
+        <button type="submit" id="btn-enviar">Enviar reseña</button>
+        <div id="reseñas-mostradas">
+            </div>
+    </div>
+    <script>
+        /* Pega el código JavaScript aquí */
+        document.addEventListener('DOMContentLoaded', () => {
+            const formulario = document.getElementById('formulario-reseña');
+            const btnEnviar = document.getElementById('btn-enviar');
+            const comentarioInput = document.getElementById('comentario');
+            const reseñasMostradas = document.getElementById('reseñas-mostradas');
+
+            let reseñas = JSON.parse(localStorage.getItem('reseñas')) || [];
+
+            const generarNombreAnonimo = () => {
+                const adjetivos = ['Anónimo', 'Secreto', 'Misterioso', 'Oculto'];
+                const sustantivos = ['Usuario', 'Visitante', 'Cliente', 'Revisor'];
+                const adjetivoAleatorio = adjetivos[Math.floor(Math.random() * adjetivos.length)];
+                const sustantivoAleatorio = sustantivos[Math.floor(Math.random() * sustantivos.length)];
+                return `${adjetivoAleatorio} ${sustantivoAleatorio}`;
+            };
+
+            const mostrarReseñas = () => {
+                reseñasMostradas.innerHTML = '';
+                reseñas.forEach(reseña => {
+                    const divReseña = document.createElement('div');
+                    divReseña.classList.add('reseña');
+
+                    let estrellasHTML = '';
+                    for (let i = 0; i < 5; i++) {
+                        if (i < reseña.calificacion) {
+                            estrellasHTML += `<span class="estrellas-mostrar">&#9733;</span>`;
+                        } else {
+                            estrellasHTML += `<span>&#9733;</span>`;
+                        }
+                    }
+                    
+                    divReseña.innerHTML = `
+                        <p><strong>De:</strong> ${reseña.nombre}</p>
+                        <div class="calificacion-mostrar">${estrellasHTML}</div>
+                        <p><strong>Comentario:</strong> ${reseña.comentario}</p>
+                    `;
+                    reseñasMostradas.appendChild(divReseña);
+                });
+            };
+
+            btnEnviar.addEventListener('click', (e) => {
+                e.preventDefault();
+                const calificacionInput = document.querySelector('input[name="calificacion"]:checked');
+
+                if (!calificacionInput) {
+                    alert('Por favor, selecciona una calificación con estrellas.');
+                    return;
+                }
+
+                const nuevaReseña = {
+                    nombre: generarNombreAnonimo(),
+                    calificacion: parseInt(calificacionInput.value),
+                    comentario: comentarioInput.value
+                };
+
+                reseñas.unshift(nuevaReseña);
+                localStorage.setItem('reseñas', JSON.stringify(reseñas));
+                comentarioInput.value = '';
+                calificacionInput.checked = false;
+                mostrarReseñas();
+            });
+
+            mostrarReseñas();
+        });
+    </script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reseñas Anónimas</title>
+    <style>
+        /* Pega el código CSS aquí */
+        .contenedor-reseñas {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .contenedor-estrellas {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .estrellas {
+            direction: rtl;
+            display: flex;
+        }
+
+        .estrellas input {
+            display: none;
+        }
+
+        .estrellas label {
+            font-size: 3rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .estrellas input:checked ~ label,
+        .estrellas label:hover,
+        .estrellas label:hover ~ label {
+            color: #ffcc00;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #btn-enviar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #btn-enviar:hover {
+            background-color: #0056b3;
+        }
+
+        #reseñas-mostradas {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .reseña {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .reseña .estrellas-mostrar {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor-reseñas">
+        <h2>Deja tu reseña</h2>
+        <div class="contenedor-estrellas">
+            <span class="etiqueta-estrellas">Calificación:</span>
+            <form id="formulario-reseña" class="estrellas">
+                <input type="radio" id="estrella5" name="calificacion" value="5" />
+                <label for="estrella5" title="5 estrellas">&#9733;</label>
+                <input type="radio" id="estrella4" name="calificacion" value="4" />
+                <label for="estrella4" title="4 estrellas">&#9733;</label>
+                <input type="radio" id="estrella3" name="calificacion" value="3" />
+                <label for="estrella3" title="3 estrellas">&#9733;</label>
+                <input type="radio" id="estrella2" name="calificacion" value="2" />
+                <label for="estrella2" title="2 estrellas">&#9733;</label>
+                <input type="radio" id="estrella1" name="calificacion" value="1" />
+                <label for="estrella1" title="1 estrella">&#9733;</label>
+            </form>
+        </div>
+        <textarea id="comentario" placeholder="Escribe tu comentario anónimo..." required></textarea>
+        <button type="submit" id="btn-enviar">Enviar reseña</button>
+        <div id="reseñas-mostradas">
+            </div>
+    </div>
+    <script>
+        /* Pega el código JavaScript aquí */
+        document.addEventListener('DOMContentLoaded', () => {
+            const formulario = document.getElementById('formulario-reseña');
+            const btnEnviar = document.getElementById('btn-enviar');
+            const comentarioInput = document.getElementById('comentario');
+            const reseñasMostradas = document.getElementById('reseñas-mostradas');
+
+            let reseñas = JSON.parse(localStorage.getItem('reseñas')) || [];
+
+            const generarNombreAnonimo = () => {
+                const adjetivos = ['Anónimo', 'Secreto', 'Misterioso', 'Oculto'];
+                const sustantivos = ['Usuario', 'Visitante', 'Cliente', 'Revisor'];
+                const adjetivoAleatorio = adjetivos[Math.floor(Math.random() * adjetivos.length)];
+                const sustantivoAleatorio = sustantivos[Math.floor(Math.random() * sustantivos.length)];
+                return ${adjetivoAleatorio} ${sustantivoAleatorio};
+            };
+
+            const mostrarReseñas = () => {
+                reseñasMostradas.innerHTML = '';
+                reseñas.forEach(reseña => {
+                    const divReseña = document.createElement('div');
+                    divReseña.classList.add('reseña');
+
+                    let estrellasHTML = '';
+                    for (let i = 0; i < 5; i++) {
+                        if (i < reseña.calificacion) {
+                            estrellasHTML += <span class="estrellas-mostrar">&#9733;</span>;
+                        } else {
+                            estrellasHTML += <span>&#9733;</span>;
+                        }
+                    }
+                    
+                    divReseña.innerHTML = `
+                        <p><strong>De:</strong> ${reseña.nombre}</p>
+                        <div class="calificacion-mostrar">${estrellasHTML}</div>
+                        <p><strong>Comentario:</strong> ${reseña.comentario}</p>
+                    `;
+                    reseñasMostradas.appendChild(divReseña);
+                });
+            };
+
+            btnEnviar.addEventListener('click', (e) => {
+                e.preventDefault();
+                const calificacionInput = document.querySelector('input[name="calificacion"]:checked');
+
+                if (!calificacionInput) {
+                    alert('Por favor, selecciona una calificación con estrellas.');
+                    return;
+                }
+
+                const nuevaReseña = {
+                    nombre: generarNombreAnonimo(),
+                    calificacion: parseInt(calificacionInput.value),
+                    comentario: comentarioInput.value
+                };
+
+                reseñas.unshift(nuevaReseña);
+                localStorage.setItem('reseñas', JSON.stringify(reseñas));
+                comentarioInput.value = '';
+                calificacionInput.checked = false;
+                mostrarReseñas();
+            });
+
+            mostrarReseñas();
+        });
+    </script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reseñas Anónimas</title>
+    <style>
+        /* Pega el código CSS aquí */
+        .contenedor-reseñas {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .contenedor-estrellas {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .estrellas {
+            direction: rtl;
+            display: flex;
+        }
+
+        .estrellas input {
+            display: none;
+        }
+
+        .estrellas label {
+            font-size: 3rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .estrellas input:checked ~ label,
+        .estrellas label:hover,
+        .estrellas label:hover ~ label {
+            color: #ffcc00;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #btn-enviar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #btn-enviar:hover {
+            background-color: #0056b3;
+        }
+
+        #reseñas-mostradas {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .reseña {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .reseña .estrellas-mostrar {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor-reseñas">
+        <h2>Deja tu reseña</h2>
+        <div class="contenedor-estrellas">
+            <span class="etiqueta-estrellas">Calificación:</span>
+            <form id="formulario-reseña" class="estrellas">
+                <input type="radio" id="estrella5" name="calificacion" value="5" />
+                <label for="estrella5" title="5 estrellas">&#9733;</label>
+                <input type="radio" id="estrella4" name="calificacion" value="4" />
+                <label for="estrella4" title="4 estrellas">&#9733;</label>
+                <input type="radio" id="estrella3" name="calificacion" value="3" />
+                <label for="estrella3" title="3 estrellas">&#9733;</label>
+                <input type="radio" id="estrella2" name="calificacion" value="2" />
+                <label for="estrella2" title="2 estrellas">&#9733;</label>
+                <input type="radio" id="estrella1" name="calificacion" value="1" />
+                <label for="estrella1" title="1 estrella">&#9733;</label>
+            </form>
+        </div>
+        <textarea id="comentario" placeholder="Escribe tu comentario anónimo..." required></textarea>
+        <button type="submit" id="btn-enviar">Enviar reseña</button>
+        <div id="reseñas-mostradas">
+            </div>
+    </div>
+    <script>
+        /* Pega el código JavaScript aquí */
+        document.addEventListener('DOMContentLoaded', () => {
+            const formulario = document.getElementById('formulario-reseña');
+            const btnEnviar = document.getElementById('btn-enviar');
+            const comentarioInput = document.getElementById('comentario');
+            const reseñasMostradas = document.getElementById('reseñas-mostradas');
+
+            let reseñas = JSON.parse(localStorage.getItem('reseñas')) || [];
+
+            const generarNombreAnonimo = () => {
+                const adjetivos = ['Anónimo', 'Secreto', 'Misterioso', 'Oculto'];
+                const sustantivos = ['Usuario', 'Visitante', 'Cliente', 'Revisor'];
+                const adjetivoAleatorio = adjetivos[Math.floor(Math.random() * adjetivos.length)];
+                const sustantivoAleatorio = sustantivos[Math.floor(Math.random() * sustantivos.length)];
+                return ${adjetivoAleatorio} ${sustantivoAleatorio};
+            };
+
+            const mostrarReseñas = () => {
+                reseñasMostradas.innerHTML = '';
+                reseñas.forEach(reseña => {
+                    const divReseña = document.createElement('div');
+                    divReseña.classList.add('reseña');
+
+                    let estrellasHTML = '';
+                    for (let i = 0; i < 5; i++) {
+                        if (i < reseña.calificacion) {
+                            estrellasHTML += <span class="estrellas-mostrar">&#9733;</span>;
+                        } else {
+                            estrellasHTML += <span>&#9733;</span>;
+                        }
+                    }
+                    
+                    divReseña.innerHTML = `
+                        <p><strong>De:</strong> ${reseña.nombre}</p>
+                        <div class="calificacion-mostrar">${estrellasHTML}</div>
+                        <p><strong>Comentario:</strong> ${reseña.comentario}</p>
+                    `;
+                    reseñasMostradas.appendChild(divReseña);
+                });
+            };
+
+            btnEnviar.addEventListener('click', (e) => {
+                e.preventDefault();
+                const calificacionInput = document.querySelector('input[name="calificacion"]:checked');
+
+                if (!calificacionInput) {
+                    alert('Por favor, selecciona una calificación con estrellas.');
+                    return;
+                }
+
+                const nuevaReseña = {
+                    nombre: generarNombreAnonimo(),
+                    calificacion: parseInt(calificacionInput.value),
+                    comentario: comentarioInput.value
+                };
+
+                reseñas.unshift(nuevaReseña);
+                localStorage.setItem('reseñas', JSON.stringify(reseñas));
+                comentarioInput.value = '';
+                calificacionInput.checked = false;
+                mostrarReseñas();
+            });
+
+            mostrarReseñas();
+        });
+    </script>
