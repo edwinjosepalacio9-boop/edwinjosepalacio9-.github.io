@@ -718,7 +718,5 @@ function submitRating() {
   }
   document.getElementById('ratingResult').innerText =
     `¡Gracias por tu calificación de ${selectedRating} estrella${selectedRating > 1 ? 's' : ''}!\nTu opinión: ${text}`;
-  // Si quieres guardar en localStorage:
-  // localStorage.setItem('siteRating', JSON.stringify({stars: selectedRating, text}));
-}
+  // localStorage.setItem('siteRating', JSON.stringify({stars: selectedRating, text}));}
 </script>
